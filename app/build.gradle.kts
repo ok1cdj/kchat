@@ -1,44 +1,45 @@
+import java.util.Properties
+
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+
 plugins {
     id("com.android.application")
-    id("org.jetbrains.kotlin.android")
     id("org.jetbrains.kotlin.plugin.compose")
     id("org.jetbrains.kotlin.plugin.serialization")
 }
 
+// Signing config is read from local.properties (gitignored) so the keystore and
+// its passwords never enter the repo. See local.properties.example. Debug builds
+// need none of this; only assembleRelease uses it.
+val localProps = Properties().apply {
+    val f = rootProject.file("local.properties")
+    if (f.exists()) f.inputStream().use { load(it) }
+}
+fun prop(key: String): String? = localProps.getProperty(key)
+val keystorePath = prop("signing.storeFile")
+val hasKeystore = keystorePath != null && rootProject.file(keystorePath).exists()
+
 android {
-    namespace = "com.miniichat"
-    compileSdk = 34
+    namespace = "org.ok1cdj.kchat"
+    compileSdk = 37
 
     defaultConfig {
-        applicationId = "com.miniichat"
-        minSdk = 26
+        applicationId = "org.ok1cdj.kchat"
+        minSdk = 29
         targetSdk = 34
-        versionCode = 7
-        versionName = "1.0.2"
+        versionCode = 1
+        versionName = "1.0.0"
         vectorDrawables { useSupportLibrary = true }
     }
 
     signingConfigs {
-        create("release") {
-            val ksFile = file("release.keystore")
-            if (ksFile.exists()) {
-                storeFile = ksFile
-                storePassword = (project.findProperty("RELEASE_STORE_PASSWORD") as String?)
-                    ?: System.getenv("RELEASE_STORE_PASSWORD") ?: "miniichat"
-                keyAlias = (project.findProperty("RELEASE_KEY_ALIAS") as String?)
-                    ?: System.getenv("RELEASE_KEY_ALIAS") ?: "miniichat"
-                keyPassword = (project.findProperty("RELEASE_KEY_PASSWORD") as String?)
-                    ?: System.getenv("RELEASE_KEY_PASSWORD") ?: "miniichat"
+        if (hasKeystore) {
+            create("release") {
+                storeFile = rootProject.file(keystorePath!!)
+                storePassword = prop("signing.storePassword")
+                keyAlias = prop("signing.keyAlias")
+                keyPassword = prop("signing.keyPassword")
             }
-        }
-    }
-
-    splits {
-        abi {
-            isEnable = true
-            reset()
-            include("armeabi-v7a", "arm64-v8a")
-            isUniversalApk = false
         }
     }
 
@@ -49,12 +50,10 @@ android {
             versionNameSuffix = "-debug"
         }
         release {
-            isMinifyEnabled = false
-            isShrinkResources = false
-            signingConfig = if (file("release.keystore").exists()) {
-                signingConfigs.getByName("release")
-            } else {
-                signingConfigs.getByName("debug")
+            isMinifyEnabled = true
+            isShrinkResources = true
+            if (hasKeystore) {
+                signingConfig = signingConfigs.getByName("release")
             }
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
@@ -68,30 +67,12 @@ android {
         targetCompatibility = JavaVersion.VERSION_17
     }
 
-    kotlinOptions {
-        jvmTarget = "17"
-    }
-
     buildFeatures {
         compose = true
+        buildConfig = true // expose BuildConfig.VERSION_NAME for the About dialog
     }
 
     sourceSets["main"].java.srcDirs("src/main/kotlin")
-
-    // Output: miniichat-1.0.1-arm64-v8a-release.apk / miniichat-1.0.1-armeabi-v7a-release.apk
-    applicationVariants.all {
-        val variant = this
-        outputs.all {
-            val output = this as? com.android.build.gradle.internal.api.BaseVariantOutputImpl
-                ?: return@all
-            val abiName = output.filters
-                .firstOrNull { it.filterType == com.android.build.OutputFile.ABI }
-                ?.identifier
-                ?: "universal"
-            output.outputFileName =
-                "miniichat-${variant.versionName}-${abiName}-${variant.buildType.name}.apk"
-        }
-    }
 
     packaging {
         resources {
@@ -107,10 +88,23 @@ android {
     }
 }
 
+// AGP 9 uses built-in Kotlin; jvmTarget is set via the Kotlin compilerOptions DSL
+// (the old android.kotlinOptions block is gone).
+kotlin {
+    compilerOptions {
+        jvmTarget.set(JvmTarget.JVM_17)
+    }
+}
+
 dependencies {
-    val composeBom = platform("androidx.compose:compose-bom:2024.09.02")
+    val composeBom = platform("androidx.compose:compose-bom:2026.08.00")
     implementation(composeBom)
     androidTestImplementation(composeBom)
+
+    // Mudita Mindful Design — e-ink Compose components (TextMMD/ButtonMMD, no ripple).
+    // 'com.mudita:MMD' redirects to the Android artifact via Gradle module metadata,
+    // resolved from Maven Central (see settings.gradle.kts).
+    implementation("com.mudita:MMD:1.0.2")
 
     implementation("androidx.core:core-ktx:1.13.1")
     implementation("androidx.activity:activity-compose:1.9.2")

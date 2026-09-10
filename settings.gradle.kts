@@ -14,5 +14,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "MiniiChat"
+rootProject.name = "kChat"
 include(":app")

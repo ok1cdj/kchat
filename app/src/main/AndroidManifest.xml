@@ -12,14 +12,14 @@
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
         android:supportsRtl="true"
-        android:theme="@style/Theme.MiniiChat"
+        android:theme="@style/Theme.KChat"
         android:enableOnBackInvokedCallback="true">
 
         <activity
             android:name=".MainActivity"
             android:exported="true"
             android:windowSoftInputMode="adjustResize"
-            android:theme="@style/Theme.MiniiChat">
+            android:theme="@style/Theme.KChat">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
