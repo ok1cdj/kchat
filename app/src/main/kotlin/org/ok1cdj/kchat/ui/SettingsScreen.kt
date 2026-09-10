@@ -47,6 +47,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -69,6 +70,7 @@ fun SettingsScreen(
     var system by rememberSaveable { mutableStateOf(settings.systemPrompt) }
     var temperature by rememberSaveable { mutableStateOf(settings.temperature) }
     var showAbout by remember { mutableStateOf(false) }
+    val context = LocalContext.current
     val stream = settings.stream
 
     androidx.compose.runtime.LaunchedEffect(settings.systemPrompt) {
@@ -228,7 +230,11 @@ fun SettingsScreen(
                             "cs" to stringResource(R.string.setting_language_cs)
                         ),
                         selectedKey = settings.language,
-                        onSelect = { k -> onChange { s -> s.copy(language = k) } }
+                        onSelect = { k ->
+                            onChange { s -> s.copy(language = k) }
+                            // Locale is only read at activity start — persist + recreate now.
+                            (context as? org.ok1cdj.kchat.MainActivity)?.applyLanguageAndRecreate(k)
+                        }
                     )
                 }
             }

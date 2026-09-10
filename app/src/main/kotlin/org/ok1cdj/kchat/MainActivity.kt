@@ -7,8 +7,6 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import org.ok1cdj.kchat.ui.AppRoot
 import org.ok1cdj.kchat.ui.theme.KChatTheme
 import java.util.Locale
@@ -42,15 +40,19 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            val s by vm.settings.collectAsState()
-            // Mirror language to SharedPreferences so attachBaseContext can pick it up next launch
-            val prefs = getSharedPreferences("locale_cache", MODE_PRIVATE)
-            if (prefs.getString("language", "system") != s.language) {
-                prefs.edit().putString("language", s.language).apply()
-            }
             KChatTheme {
                 AppRoot(vm)
             }
         }
+    }
+
+    /**
+     * Persist the chosen language to the locale-cache prefs and recreate, so the
+     * new locale is applied immediately (it is only read in attachBaseContext).
+     */
+    fun applyLanguageAndRecreate(lang: String) {
+        getSharedPreferences("locale_cache", MODE_PRIVATE)
+            .edit().putString("language", lang).apply()
+        recreate()
     }
 }
