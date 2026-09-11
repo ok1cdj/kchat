@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="108" height="108" viewBox="0 0 108 108">
+  <!-- kChat launcher icon: black speech-bubble-with-"k" on a white rounded square. -->
+  <rect width="108" height="108" rx="24" fill="#FFFFFF"/>
+  <g fill="none" stroke="#000000" stroke-width="5" stroke-linecap="round" stroke-linejoin="round">
+    <!-- speech bubble with a bottom-left tail -->
+    <path d="M38,30 L70,30 Q82,30 82,42 L82,54 Q82,66 70,66 L50,66 L34,80 L44,66 L38,66 Q26,66 26,54 L26,42 Q26,30 38,30 Z"/>
+    <!-- letter k -->
+    <path d="M46,40 L46,58 M58,45 L49,50 L59,60"/>
+  </g>
+</svg>
